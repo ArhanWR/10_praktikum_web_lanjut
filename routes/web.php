@@ -43,6 +43,8 @@ Route::get('/mahasiswa/{mahasiswa}', [MahasiswaController::class, 'show'])->name
 
 Route::get('/mahasiswa/{Nim}/khs',[MahasiswaController::class, 'showKhs'])->name('mahasiswas.showKhs');
 
+Route::get('/mahasiswa/{Nim}/cetak_pdf',[MahasiswaController::class,'cetak_pdf'])->name('mahasiswas.cetak_pdf');
+
 
 
 Route::resource('articles', ArticleController::class);

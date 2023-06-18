@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Mahasiswa;
 use App\Models\Kelas;
 use App\Models\Mahasiswa_MataKuliah;
+use App\Models\Matakuliah;
 use Illuminate\Http\Request;
+use PDF;
 
 class MahasiswaController extends Controller
 {
@@ -39,6 +41,7 @@ class MahasiswaController extends Controller
             $request->validate([
                 'Nim' => 'required',
                 'Nama' => 'required',
+                'Image' => 'required',
                 'Kelas' => 'required',
                 'Jurusan' => 'required',
             ]);
@@ -46,14 +49,20 @@ class MahasiswaController extends Controller
             $mahasiswas = new Mahasiswa;
             $mahasiswas->nim = $request->get('Nim');
             $mahasiswas->nama = $request->get('Nama');
+            $mahasiswas->image = $request->get('Image');
             $mahasiswas->jurusan = $request->get('Jurusan');
-            $mahasiswas->save();
 
             $kelas = new Kelas;
             $kelas->id = $request->get('Kelas');
             
             //fungsi eloquent untuk menambah data dengan relasi belongsTo
             $mahasiswas->kelas()->associate($kelas);
+            
+            //upload image
+            if ($request->file('image')) {
+                $image_name = $request->file('image')->store('images', 'public');
+                $mahasiswas->image = $image_name;
+            }
             $mahasiswas->save();
             
             //jika data berhasil ditambahkan, akan kembali ke halaman utama
@@ -112,13 +121,21 @@ class MahasiswaController extends Controller
                 $mahasiswas->nim = $request->get('Nim');
                 $mahasiswas->nama = $request->get('Nama');
                 $mahasiswas->jurusan = $request->get('Jurusan');
-                $mahasiswas->save();
 
                 $kelas = new Kelas;
                 $kelas->id = $request->get('Kelas');
 
                 //fungsi eloquent untuk mengupdate data dengan relasi belongsTo
                 $mahasiswas->kelas()->associate($kelas);
+
+                //edit image
+                if ($mahasiswas->image && file_exists(storage_path('app/public/' . $mahasiswas->image))) {
+                    \Storage::delete('public/' . $mahasiswas->image);
+                }
+                if ($request->file('image')) {
+                    $image_name = $request->file('image')->store('images', 'public');
+                }
+                $mahasiswas->image = $image_name;
                 $mahasiswas->save();
                 
                 //jika data berhasil diupdate, akan kembali ke halaman utama
@@ -133,5 +150,13 @@ class MahasiswaController extends Controller
         //fungsi eloquent untuk menghapus data
         Mahasiswa::where('Nim', $Nim)->delete();
         return redirect()->route('mahasiswas.index')-> with('success', 'Mahasiswa Berhasil Dihapus');
+    }
+
+    public function cetak_pdf($Nim)
+    {
+        $Mahasiswa = Mahasiswa::where('Nim', $Nim)->first();
+        $mahasiswaMataKuliah = Mahasiswa_MataKuliah::where('mahasiswa_id', $Mahasiswa->id)->with('mataKuliah')->get();
+        $pdf = PDF::loadview('mahasiswas.mhs_pdf', compact('Mahasiswa', 'mahasiswaMataKuliah'));
+        return $pdf->stream();
     }
 };

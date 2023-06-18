@@ -22,21 +22,21 @@
         <tr>
             <th>Nim</th>
             <th>Nama</th>
+            <th>Foto</th>
             <th>Kelas</th>
             <th>Jurusan</th>
             <th width="300px">Action</th>
         </tr>
         @foreach ($mahasiswas as $Mahasiswa)
         <tr>
- 
             <td>{{ $Mahasiswa->Nim }}</td>
             <td>{{ $Mahasiswa->Nama }}</td>
+            <td><img width="100px" src="{{asset('storage/'.$Mahasiswa->image)}}"></td>
             <td>{{ $Mahasiswa->kelas->nama_kelas }}</td>
             <td>{{ $Mahasiswa->Jurusan }}</td>
 
             <td>
             <form action="{{ route('mahasiswas.destroy',$Mahasiswa->Nim) }}" method="POST" onsubmit="return confirm('Yakin akan menghapus data?')">
- 
                     <a class="btn btn-info" href="{{ route('mahasiswas.show',$Mahasiswa->Nim) }}">Show</a>
                     <a class="btn btn-primary" href="{{ route('mahasiswas.edit',$Mahasiswa->Nim) }}">Edit</a>
                     @csrf
